@@ -1,0 +1,35 @@
+name: Node CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: yarn install, build, and test
+        run: |
+          yarn install
+          yarn build
+          yarn start --smoke-test
+        env:
+          CI: true
+
+      - name: push to platform
+        run: |
+          cd platform
+          npx dcu -k $KTEST -n $NTEST -x .
+        env:
+          CI: true
+          KTEST: ${{ secrets.KTEST }}
+          NTEST: ${{ secrets.NTEST }}
